@@ -18,38 +18,28 @@ local testing = false
 local verbose = false
 
 -- Spell list
-local targetSpells = {}
-targetSpells[48265] 	= true --Death's Advance
+TST.db = {}
+TST.db.affected_spell_ids = {}
 
-targetSpells[195072] 	= true --Fel Rush
-targetSpells[189110] 	= true --Infernal Strike
-
-targetSpells[1850] 		= true --Dash
-targetSpells[252216] 	= true --Tiger Dash
-
-targetSpells[358267] 	= true --Hover
-
-targetSpells[186257] 	= true --Aspect of the Cheetah
-
-targetSpells[1953] 		= true --Blink
-targetSpells[212653] 	= true --Shimmer
-
-targetSpells[361138] 	= true --Roll
-targetSpells[119085] 	= true --Chi Torpedo
-
-targetSpells[190784] 	= true --Divine Steed
-
-targetSpells[73325] 	= true --Leap of Faith
-
-targetSpells[2983] 		= true --Sprint
-
-targetSpells[192063] 	= true --Gust of Wind
-targetSpells[58875] 	= true --Spirit Walk
-targetSpells[79206] 	= true --Spiritwalker's Grace
-
-targetSpells[48020] 	= true --Demonic Circle: Teleport
-
-targetSpells[6544] 		= true --Heroic Leap
+TST.db.affected_spell_ids[48265]  = true -- Death Knight: Death's Advance
+TST.db.affected_spell_ids[195072] = true -- Demon Hunter: Fel Rush
+TST.db.affected_spell_ids[189110] = true -- Demon Hunter: Infernal Strike
+TST.db.affected_spell_ids[1850]   = true --        Druid: Dash
+TST.db.affected_spell_ids[252216] = true --        Druid: Tiger Dash
+TST.db.affected_spell_ids[358267] = true --       Evoker: Hover
+TST.db.affected_spell_ids[186257] = true --       Hunter: Aspect of the Cheetah
+TST.db.affected_spell_ids[1953]   = true --         Mage: Blink
+TST.db.affected_spell_ids[212653] = true --         Mage: Shimmer
+TST.db.affected_spell_ids[361138] = true --         Monk: Roll
+TST.db.affected_spell_ids[119085] = true --         Monk: Chi Torpedo
+TST.db.affected_spell_ids[190784] = true --      Paladin: Divine Steed
+TST.db.affected_spell_ids[73325]  = true --       Priest: Leap of Faith
+TST.db.affected_spell_ids[2983]   = true --        Rogue: Sprint
+TST.db.affected_spell_ids[192063] = true --       Shaman: Gust of Wind
+TST.db.affected_spell_ids[58875]  = true --       Shaman: Spirit Walk
+TST.db.affected_spell_ids[79206]  = true --       Shaman: Spiritwalker's Grace
+TST.db.affected_spell_ids[48020]  = true --      Warlock: Demonic Circle: Teleport
+TST.db.affected_spell_ids[6544]   = true --      Warrior: Heroic Leap
 
 -------------------------------------------------------------------------------
 --- Functions
@@ -93,6 +83,7 @@ end
 function TST:ToggleTest()
     testing = not testing
     TST:Print("testing turned " .. (testing and "on" or "off"))
+
     if testing then
         TST.frame:Show()
     else
@@ -170,14 +161,12 @@ local function EventHandler(self, event, arg1)
             TST:Print("Loaded. Use " .. SLASH_TIMESPIRALTEXT1 .. " for commands.")
         end
     elseif event == "SPELL_ACTIVATION_OVERLAY_GLOW_SHOW" then
-        local spellId = arg1
-        if targetSpells[spellId] then
+        if TST.db.affected_spell_ids[arg1] then
             TST.frame:Show()
         end
 
     elseif event == "SPELL_ACTIVATION_OVERLAY_GLOW_HIDE" then
-        local spellId = arg1
-        if targetSpells[spellId] then
+        if TST.db.affected_spell_ids[arg1] then
             TST.frame:Hide()
         end
     end
