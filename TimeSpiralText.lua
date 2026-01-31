@@ -1,4 +1,5 @@
 local ADDON_NAME, TST = ...
+ADDON_ABVR = "TST"
 
 -------------------------------------------------------------------------------
 --- Configuration Variables
