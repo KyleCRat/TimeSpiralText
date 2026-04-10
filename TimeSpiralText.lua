@@ -1,5 +1,5 @@
 local ADDON_NAME, TST = ...
-ADDON_ABVR = "TST"
+local ADDON_ABVR = "TST"
 
 -------------------------------------------------------------------------------
 --- Configuration Variables
@@ -19,28 +19,28 @@ local testing = false
 local verbose = false
 
 -- Spell list
-TST.db = {}
-TST.db.affected_spell_ids = {}
+TST.data = {}
+TST.data.affected_spell_ids = {}
 
-TST.db.affected_spell_ids[48265]  = true -- Death Knight: Death's Advance
-TST.db.affected_spell_ids[195072] = true -- Demon Hunter: Fel Rush
-TST.db.affected_spell_ids[189110] = true -- Demon Hunter: Infernal Strike
-TST.db.affected_spell_ids[1850]   = true --        Druid: Dash
-TST.db.affected_spell_ids[252216] = true --        Druid: Tiger Dash
-TST.db.affected_spell_ids[358267] = true --       Evoker: Hover
-TST.db.affected_spell_ids[186257] = true --       Hunter: Aspect of the Cheetah
-TST.db.affected_spell_ids[1953]   = true --         Mage: Blink
-TST.db.affected_spell_ids[212653] = true --         Mage: Shimmer
-TST.db.affected_spell_ids[361138] = true --         Monk: Roll
-TST.db.affected_spell_ids[119085] = true --         Monk: Chi Torpedo
-TST.db.affected_spell_ids[190784] = true --      Paladin: Divine Steed
-TST.db.affected_spell_ids[73325]  = true --       Priest: Leap of Faith
-TST.db.affected_spell_ids[2983]   = true --        Rogue: Sprint
-TST.db.affected_spell_ids[192063] = true --       Shaman: Gust of Wind
-TST.db.affected_spell_ids[58875]  = true --       Shaman: Spirit Walk
-TST.db.affected_spell_ids[79206]  = true --       Shaman: Spiritwalker's Grace
-TST.db.affected_spell_ids[48020]  = true --      Warlock: Demonic Circle: Teleport
-TST.db.affected_spell_ids[6544]   = true --      Warrior: Heroic Leap
+TST.data.affected_spell_ids[48265]  = true -- Death Knight: Death's Advance
+TST.data.affected_spell_ids[195072] = true -- Demon Hunter: Fel Rush
+TST.data.affected_spell_ids[189110] = true -- Demon Hunter: Infernal Strike
+TST.data.affected_spell_ids[1850]   = true --        Druid: Dash
+TST.data.affected_spell_ids[252216] = true --        Druid: Tiger Dash
+TST.data.affected_spell_ids[358267] = true --       Evoker: Hover
+TST.data.affected_spell_ids[186257] = true --       Hunter: Aspect of the Cheetah
+TST.data.affected_spell_ids[1953]   = true --         Mage: Blink
+TST.data.affected_spell_ids[212653] = true --         Mage: Shimmer
+TST.data.affected_spell_ids[361138] = true --         Monk: Roll
+TST.data.affected_spell_ids[119085] = true --         Monk: Chi Torpedo
+TST.data.affected_spell_ids[190784] = true --      Paladin: Divine Steed
+TST.data.affected_spell_ids[73325]  = true --       Priest: Leap of Faith
+TST.data.affected_spell_ids[2983]   = true --        Rogue: Sprint
+TST.data.affected_spell_ids[192063] = true --       Shaman: Gust of Wind
+TST.data.affected_spell_ids[58875]  = true --       Shaman: Spirit Walk
+TST.data.affected_spell_ids[79206]  = true --       Shaman: Spiritwalker's Grace
+TST.data.affected_spell_ids[48020]  = true --      Warlock: Demonic Circle: Teleport
+TST.data.affected_spell_ids[6544]   = true --      Warrior: Heroic Leap
 
 -------------------------------------------------------------------------------
 --- Functions
@@ -156,18 +156,18 @@ local function EventHandler(self, event, arg1)
 
             TST.frame:UnregisterEvent("ADDON_LOADED")
 
-            TST.frame:RegisterUnitEvent("SPELL_ACTIVATION_OVERLAY_GLOW_SHOW")
-            TST.frame:RegisterUnitEvent("SPELL_ACTIVATION_OVERLAY_GLOW_HIDE")
+            TST.frame:RegisterEvent("SPELL_ACTIVATION_OVERLAY_GLOW_SHOW")
+            TST.frame:RegisterEvent("SPELL_ACTIVATION_OVERLAY_GLOW_HIDE")
 
             TST:Print("Loaded. Use " .. SLASH_TIMESPIRALTEXT1 .. " for commands.")
         end
     elseif event == "SPELL_ACTIVATION_OVERLAY_GLOW_SHOW" then
-        if TST.db.affected_spell_ids[arg1] then
+        if TST.data.affected_spell_ids[arg1] then
             TST.frame:Show()
         end
 
     elseif event == "SPELL_ACTIVATION_OVERLAY_GLOW_HIDE" then
-        if TST.db.affected_spell_ids[arg1] then
+        if TST.data.affected_spell_ids[arg1] then
             TST.frame:Hide()
         end
     end
