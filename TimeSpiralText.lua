@@ -18,6 +18,13 @@ local padding_bottom = -3 -- Adjust all text down
 local testing = false
 local verbose = false
 
+local DEFAULT_POSITION = {
+    point = "CENTER",
+    relPoint = "CENTER",
+    x = 0,
+    y = 0
+}
+
 -- Spell list
 TST.data = {}
 TST.data.affected_spell_ids = {}
@@ -92,6 +99,44 @@ function TST:ToggleTest()
     end
 end
 
+function TST:InitializeDB()
+    TimeSpiralTextDB = TimeSpiralTextDB or {}
+
+    if TimeSpiralTextDB.locked == nil then
+        TimeSpiralTextDB.locked = false
+    end
+
+    if type(TimeSpiralTextDB.position) ~= "table" then
+        TimeSpiralTextDB.position = {}
+    end
+
+    local position = TimeSpiralTextDB.position
+    position.point = position.point or DEFAULT_POSITION.point
+    position.relPoint = position.relPoint or DEFAULT_POSITION.relPoint
+    position.x = position.x or DEFAULT_POSITION.x
+    position.y = position.y or DEFAULT_POSITION.y
+end
+
+function TST:RestorePosition()
+    local position = TimeSpiralTextDB and TimeSpiralTextDB.position
+    if not position then return end
+
+    TST.frame:ClearAllPoints()
+    TST.frame:SetPoint(position.point, UIParent, position.relPoint, position.x, position.y)
+end
+
+function TST:SavePosition()
+    if not TimeSpiralTextDB then return end
+
+    local point, _, relPoint, x, y = TST.frame:GetPoint(1)
+    TimeSpiralTextDB.position = {
+        point = point,
+        relPoint = relPoint,
+        x = x,
+        y = y
+    }
+end
+
 -------------------------------------------------------------------------------
 --- Initialization
 -------------------------------------------------------------------------------
@@ -102,6 +147,7 @@ TST.frame:SetSize(mover_size, mover_size)
 TST.frame:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
 TST.frame:SetMovable(true)
 TST.frame:SetClampedToScreen(true)
+TST.frame:SetToplevel(true)
 TST.frame:Hide()
 
 -- Create background
@@ -119,8 +165,13 @@ TST.frame.handle:SetVertexColor(1, 1, 1, 1)
 -- Make the frame draggable
 TST.frame:EnableMouse(true)
 TST.frame:RegisterForDrag("LeftButton")
-TST.frame:SetScript("OnDragStart", TST.frame.StartMoving)
-TST.frame:SetScript("OnDragStop", TST.frame.StopMovingOrSizing)
+TST.frame:SetScript("OnDragStart", function(self)
+    self:StartMoving()
+end)
+TST.frame:SetScript("OnDragStop", function(self)
+    self:StopMovingOrSizing()
+    TST:SavePosition()
+end)
 
 -- Set up custom font (using a WoW built-in font, or replace with your own font file)
 local FONT = "Interface\\AddOns\\TimeSpiralText\\media\\fonts\\PTSansNarrow-Bold.ttf"
@@ -144,15 +195,9 @@ TST.frame.text:SetText("Time Spiral")
 local function EventHandler(self, event, arg1)
     if event == "ADDON_LOADED" then
         if arg1 == ADDON_NAME then
-            if not TimeSpiralTextDB then
-                TST:Print("TimeSpiralTextDB not available, creating.")
-                TimeSpiralTextDB = {
-                    locked = false
-                }
-            else
-                -- Set saved variables
-                TST:Lock(TimeSpiralTextDB.locked)
-            end
+            TST:InitializeDB()
+            TST:RestorePosition()
+            TST:Lock(TimeSpiralTextDB.locked)
 
             TST.frame:UnregisterEvent("ADDON_LOADED")
 
