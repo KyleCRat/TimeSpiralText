@@ -15,8 +15,14 @@ local  handle_offset = 0 -- Adjust Handle to the left
 local     mover_size = 32
 local padding_bottom = -3 -- Adjust all text down
 
+local COUNTDOWN_DURATION = 10
+local COUNTDOWN_UPDATE_INTERVAL = 0.1
+local DISPLAY_TEXT = "Time Spiral"
+
 local testing = false
 local verbose = false
+local countdown_ends_at = nil
+local countdown_ticker = nil
 
 local DEFAULT_POSITION = {
     point = "CENTER",
@@ -93,10 +99,52 @@ function TST:ToggleTest()
     TST:Print("testing turned " .. (testing and "on" or "off"))
 
     if testing then
-        TST.frame:Show()
+        TST:StartCountdown()
     else
+        TST:StopCountdown()
         TST.frame:Hide()
     end
+end
+
+function TST:StopCountdown()
+    if countdown_ticker then
+        countdown_ticker:Cancel()
+        countdown_ticker = nil
+    end
+
+    countdown_ends_at = nil
+    TST.frame.text:SetText(DISPLAY_TEXT)
+
+    if not testing and (not TimeSpiralTextDB or TimeSpiralTextDB.locked) then
+        TST.frame:Hide()
+    end
+end
+
+function TST:UpdateCountdown()
+    if not countdown_ends_at then return end
+
+    local remaining = countdown_ends_at - GetTime()
+    if remaining <= 0 then
+        TST:StopCountdown()
+        return
+    end
+
+    TST.frame.text:SetText(string.format("%s %d", DISPLAY_TEXT, math.ceil(remaining)))
+end
+
+function TST:StartCountdown()
+    if countdown_ticker then
+        countdown_ticker:Cancel()
+        countdown_ticker = nil
+    end
+
+    countdown_ends_at = GetTime() + COUNTDOWN_DURATION
+    TST.frame:Show()
+    TST:UpdateCountdown()
+
+    countdown_ticker = C_Timer.NewTicker(COUNTDOWN_UPDATE_INTERVAL, function()
+        TST:UpdateCountdown()
+    end)
 end
 
 function TST:InitializeDB()
@@ -185,7 +233,7 @@ TST.frame.text = TST.frame:CreateFontString(nil, "OVERLAY")
 TST.frame.text:SetFontObject(TST.frame.font)
 TST.frame.text:SetTextColor(r, g, b, 1)
 TST.frame.text:SetPoint("BOTTOMLEFT", TST.frame, "BOTTOMRIGHT", handle_offset + 2, padding_bottom)
-TST.frame.text:SetText("Time Spiral")
+TST.frame.text:SetText(DISPLAY_TEXT)
 
 
 -------------------------------------------------------------------------------
@@ -202,18 +250,14 @@ local function EventHandler(self, event, arg1)
             TST.frame:UnregisterEvent("ADDON_LOADED")
 
             TST.frame:RegisterEvent("SPELL_ACTIVATION_OVERLAY_GLOW_SHOW")
-            TST.frame:RegisterEvent("SPELL_ACTIVATION_OVERLAY_GLOW_HIDE")
+            -- Time Spiral lasts a flat 10 seconds from glow start; the
+            -- countdown expires locally instead of using per-spell hides.
 
             TST:Print("Loaded. Use " .. SLASH_TIMESPIRALTEXT1 .. " for commands.")
         end
     elseif event == "SPELL_ACTIVATION_OVERLAY_GLOW_SHOW" then
         if TST.data.affected_spell_ids[arg1] then
-            TST.frame:Show()
-        end
-
-    elseif event == "SPELL_ACTIVATION_OVERLAY_GLOW_HIDE" then
-        if TST.data.affected_spell_ids[arg1] then
-            TST.frame:Hide()
+            TST:StartCountdown()
         end
     end
 end
