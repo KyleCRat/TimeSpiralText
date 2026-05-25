@@ -23,6 +23,7 @@ local testing = false
 local verbose = false
 local countdown_ends_at = nil
 local countdown_ticker = nil
+local countdown_spell_id = nil
 
 local DEFAULT_POSITION = {
     point = "CENTER",
@@ -113,6 +114,7 @@ function TST:StopCountdown()
     end
 
     countdown_ends_at = nil
+    countdown_spell_id = nil
     TST.frame.text:SetText(DISPLAY_TEXT)
 
     if not testing and (not TimeSpiralTextDB or TimeSpiralTextDB.locked) then
@@ -132,13 +134,14 @@ function TST:UpdateCountdown()
     TST.frame.text:SetText(string.format("%s %d", DISPLAY_TEXT, math.ceil(remaining)))
 end
 
-function TST:StartCountdown()
+function TST:StartCountdown(spellID)
     if countdown_ticker then
         countdown_ticker:Cancel()
         countdown_ticker = nil
     end
 
     countdown_ends_at = GetTime() + COUNTDOWN_DURATION
+    countdown_spell_id = spellID
     TST.frame:Show()
     TST:UpdateCountdown()
 
@@ -250,14 +253,17 @@ local function EventHandler(self, event, arg1)
             TST.frame:UnregisterEvent("ADDON_LOADED")
 
             TST.frame:RegisterEvent("SPELL_ACTIVATION_OVERLAY_GLOW_SHOW")
-            -- Time Spiral lasts a flat 10 seconds from glow start; the
-            -- countdown expires locally instead of using per-spell hides.
+            TST.frame:RegisterEvent("SPELL_ACTIVATION_OVERLAY_GLOW_HIDE")
 
             TST:Print("Loaded. Use " .. SLASH_TIMESPIRALTEXT1 .. " for commands.")
         end
     elseif event == "SPELL_ACTIVATION_OVERLAY_GLOW_SHOW" then
         if TST.data.affected_spell_ids[arg1] then
-            TST:StartCountdown()
+            TST:StartCountdown(arg1)
+        end
+    elseif event == "SPELL_ACTIVATION_OVERLAY_GLOW_HIDE" then
+        if TST.data.affected_spell_ids[arg1] and countdown_spell_id == arg1 then
+            TST:StopCountdown()
         end
     end
 end
